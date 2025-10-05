@@ -1,35 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useAppDispatch, useAppSelector } from "@/redux-toolkit/hooks";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Store,
   Building2,
   Package,
   Users,
   DollarSign,
-  TrendingUp,
   ShoppingCart,
   AlertCircle,
   BarChart3,
   FileText,
   Settings,
   LogOut,
-  Menu,
-  Bell,
   User,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
 import {
@@ -41,7 +28,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { toast } from "react-toastify";
-import router from "next/dist/shared/lib/router/router";
 import { logout } from "@/redux-toolkit/fetures/auth/authSlice";
 import { getUserProfile } from "@/redux-toolkit/fetures/user/userThunk";
 import { useRouter, usePathname } from "next/navigation";

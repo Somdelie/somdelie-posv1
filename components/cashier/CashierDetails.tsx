@@ -754,7 +754,7 @@ const CashierDetails = () => {
                       Add New Customer
                     </DialogTitle>
                     <DialogDescription>
-                      Enter the customer's information to add them to the
+                      Enter the customer&apos;s information to add them to the
                       database.
                     </DialogDescription>
                   </DialogHeader>

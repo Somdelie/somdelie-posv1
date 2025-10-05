@@ -62,8 +62,8 @@ export function SuperAdminDashboard() {
             Super Admin Dashboard
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Welcome back, {userProfile?.fullName || "Admin"}! Here's your system
-            overview.
+            Welcome back, {userProfile?.fullName || "Admin"}! Here&apos;s your
+            system overview.
           </p>
         </div>
 

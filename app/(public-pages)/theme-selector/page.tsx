@@ -36,7 +36,7 @@ export default function Page() {
               <h3 className="text-sm font-medium text-muted-foreground mb-3">
                 Current Customer
               </h3>
-              <CustomerCard customer={customers[0]} variant="sidebar" />
+              <CustomerCard customer={customers[0]} />
             </div>
 
             <div className="space-y-2">

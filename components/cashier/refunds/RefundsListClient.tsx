@@ -64,10 +64,6 @@ type Refund = {
   createdAt: string;
 };
 
-type RefundsListClientProps = {
-  refunds: Refund[];
-};
-
 export function RefundsListClient() {
   const router = useRouter();
   const dispatch = useAppDispatch();
