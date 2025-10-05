@@ -67,6 +67,18 @@ export function SuperAdminDashboard() {
           </p>
         </div>
 
+        {/* PORT=5000
+DATA_URL=jdbc:mysql://localhost:3306/somdelie_pos
+DATASOURCE_USER=root
+DATASOURCE_PASSWORD=Zola@1990 */}
+
+        {/* set APPLICATION_NAME= */}
+        {/* $env:APPLICATION_NAME="somdelie-pos-backend"
+        $env:DATASOURCE_URL="jdbc:mysql://localhost:3306/somdelie_pos"
+        $env:DATASOURCE_USERNAME="root"
+        $env:DATASOURCE_PASSWORD="Zola@1990" */}
+        {/* $env:PORT=5000 */}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Total Stores */}
