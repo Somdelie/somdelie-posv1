@@ -1,6 +1,7 @@
 import api from "@/utils/api";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getAuthHeaders } from "../auth/getAuthHeader";
+import { RootState } from "@/redux-toolkit/globalState";
 
 // create store
 export const createStore = createAsyncThunk(
@@ -139,6 +140,26 @@ export const moderateStore = createAsyncThunk(
     } catch (error: any) {
       console.error("Error moderating store:", error);
       return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// fetch current user's store (by storeId in auth slice)
+export const fetchCurrentUserStore = createAsyncThunk(
+  "store/fetchCurrentUserStore",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const storeId =
+        state.auth.user?.user?.storeId || (state.auth.user as any)?.storeId;
+      if (!storeId) {
+        return null; // nothing to fetch
+      }
+      const headers = getAuthHeaders();
+      const response = await api.get(`/api/stores/${storeId}`, { headers });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data || "Failed to load store");
     }
   }
 );

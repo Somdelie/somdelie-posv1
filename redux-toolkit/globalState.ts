@@ -38,7 +38,8 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart"], // Only persist cart reducer
+  // Persist cart and auth so auth context (including storeId) survives refresh.
+  whitelist: ["cart", "auth"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

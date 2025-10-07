@@ -15,13 +15,14 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Eye, EyeOff, Lock, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "@/redux-toolkit/hooks";
 import { login } from "@/redux-toolkit/fetures/auth/authThunk";
 import { getUserProfile } from "@/redux-toolkit/fetures/user/userThunk";
-import { useRouter } from "next/navigation";
+import { fetchCurrentUserStore } from "@/redux-toolkit/fetures/store/storeThunk";
+import { useRouter, usePathname } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -35,9 +36,12 @@ const formSchema = z.object({
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
+  const redirectAttemptedRef = useRef(false);
   const dispatch = useAppDispatch();
-  const { user, loading, error } = useAppSelector((state) => state.auth);
+  const { user, loading } = useAppSelector((state) => state.auth);
   const router = useRouter();
+  const pathname = usePathname();
 
   const roleRedirectMap: Record<string, string> = {
     ROLE_USER: "/user/profile",
@@ -48,50 +52,71 @@ export default function LoginForm() {
     ROLE_STORE_MANAGER: "/store-manager",
   };
 
-  useEffect(() => {
-    // Check if JWT exists in localStorage
-    const jwt = localStorage.getItem("jwt");
+  const getEffectiveRole = (u: any): string | undefined =>
+    u?.role || u?.user?.role;
 
+  // Initial auth check
+  useEffect(() => {
+    const jwt =
+      typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
     if (jwt) {
-      // If JWT exists, redirect to home or fetch user profile
-      // You might want to validate the JWT or fetch user profile here
-      if (user?.role && roleRedirectMap[user.role]) {
-        router.push(roleRedirectMap[user.role]);
-      } else {
-        router.push("/");
+      const effectiveRole = getEffectiveRole(user);
+      const target = effectiveRole ? roleRedirectMap[effectiveRole] : undefined;
+      if (target && pathname !== target && !redirectAttemptedRef.current) {
+        redirectAttemptedRef.current = true;
+        setRedirecting(true);
+        router.push(target);
       }
     }
-
     setIsCheckingAuth(false);
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // React to user state changes
   useEffect(() => {
-    // If user is already logged in (from Redux state), redirect them to their dashboard
-    if (user && user.role) {
-      const targetRoute = roleRedirectMap[user.role];
-      router.push(targetRoute);
+    if (!user) return;
+    const effectiveRole = getEffectiveRole(user);
+    const target = effectiveRole ? roleRedirectMap[effectiveRole] : undefined;
+    if (target && pathname !== target && !redirectAttemptedRef.current) {
+      redirectAttemptedRef.current = true;
+      setRedirecting(true);
+      router.push(target);
+    } else if (target && pathname === target) {
+      setRedirecting(false);
+    } else if (!target) {
+      setRedirecting(false);
     }
-  }, [user, router]);
+  }, [user, pathname, router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
+    setRedirecting(true);
     const result = await dispatch(login(values));
-    if (login.fulfilled.match(result)) {
-      toast.success("Login successful!");
-      const user = result.payload.user;
-      console.log("Logged in user:", user);
-      router.push(roleRedirectMap[user.role] || "/");
-      // Fetch user profile after successful login
-      dispatch(getUserProfile(result.payload.jwt));
-    } else {
+    if (!login.fulfilled.match(result)) {
       toast.error("Login failed. Invalid credentials!.");
+      setRedirecting(false);
+      return;
+    }
+    toast.success("Login successful!");
+    const payloadUser = result.payload.user;
+    const effectiveRole = getEffectiveRole(payloadUser);
+    dispatch(getUserProfile(result.payload.jwt));
+    dispatch(fetchCurrentUserStore());
+    const target = effectiveRole ? roleRedirectMap[effectiveRole] : undefined;
+    if (target) {
+      redirectAttemptedRef.current = true;
+      router.push(target);
+      // safety timeout
+      setTimeout(() => {
+        if (pathname === "/auth/login") setRedirecting(false);
+      }, 2500);
+    } else {
+      router.push("/");
+      setRedirecting(false);
     }
   };
 
@@ -100,7 +125,8 @@ export default function LoginForm() {
   }
 
   // Show loading state while checking authentication
-  if (isCheckingAuth || (user && user.role)) {
+  const effectiveRole = getEffectiveRole(user);
+  if (isCheckingAuth || redirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Card className="mx-auto grid w-[450px] gap-6 border-b-4 border-green-900">
@@ -112,6 +138,11 @@ export default function LoginForm() {
                   ? "Checking authentication..."
                   : "Redirecting to dashboard..."}
               </p>
+              {!isCheckingAuth && !effectiveRole && (
+                <p className="text-xs text-yellow-600 text-center">
+                  Still here? Role not resolved yet. You can refresh or log out.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -132,7 +163,6 @@ export default function LoginForm() {
             </p>
           </div>
         </CardHeader>
-
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -149,7 +179,6 @@ export default function LoginForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="password"
@@ -183,7 +212,6 @@ export default function LoginForm() {
                   </FormItem>
                 )}
               />
-
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -197,7 +225,6 @@ export default function LoginForm() {
             </form>
           </Form>
         </CardContent>
-
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/auth/sign-up" className="underline">

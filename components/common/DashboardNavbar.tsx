@@ -183,6 +183,9 @@ const DashboardNavbar = () => {
       // Clear localStorage
       localStorage.removeItem("jwt");
 
+      // Clear JWT cookie
+      document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
       // Dispatch logout action (if you have one)
       await dispatch(logout());
 

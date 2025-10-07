@@ -9,6 +9,8 @@ interface AuthResponse {
     fullName?: string;
     email?: string;
     role?: string;
+    storeId?: string; // added for stronger typing
+    branchId?: string; // added for stronger typing
   };
   role?: string;
   fullName?: string;
@@ -35,6 +37,34 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       localStorage.removeItem("jwt");
+      // Clear JWT cookie
+      document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    },
+    setUserStoreContext: (
+      state,
+      action: PayloadAction<{
+        storeId?: string;
+        branchId?: string;
+        role?: string;
+      }>
+    ) => {
+      if (!state.user) return;
+      // Ensure nested user object exists
+      if (!state.user.user) state.user.user = {} as any;
+      const { storeId, branchId, role } = action.payload;
+      if (storeId) (state.user.user as any).storeId = storeId;
+      if (branchId) (state.user.user as any).branchId = branchId;
+      if (role) (state.user.user as any).role = role;
+    },
+    replaceJwt: (state, action: PayloadAction<string>) => {
+      if (!state.user) {
+        state.user = { jwt: action.payload } as any;
+      } else {
+        (state.user as any).jwt = action.payload;
+      }
+      // Persist in both storages
+      localStorage.setItem("jwt", action.payload);
+      document.cookie = `jwt=${action.payload}; path=/; max-age=604800; SameSite=Strict`;
     },
   },
   extraReducers: (builder) => {
@@ -76,5 +106,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, setUserStoreContext, replaceJwt } = authSlice.actions;
 export default authSlice.reducer;

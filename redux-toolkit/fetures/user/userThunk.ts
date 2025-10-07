@@ -1,5 +1,6 @@
 import api from "@/utils/api";
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { setUserStoreContext } from "@/redux-toolkit/fetures/auth/authSlice";
 
 // Thunk to get user profile
 export const getUserProfile = createAsyncThunk(
@@ -162,12 +163,56 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       localStorage.removeItem("jwt");
+      // Clear JWT cookie
+      document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       const data = { message: "Logged out successfully" };
       console.log(data, "response from logoutUser thunk");
       return data;
     } catch (error) {
       return rejectWithValue(
         (error as any).response?.data?.message || "Logging out Failed!"
+      );
+    }
+  }
+);
+
+// Thunk to elevate a plain user to store admin and attach newly created storeId
+// Assumptions:
+//  - Backend update endpoint accepts partial body with { role, storeId }
+//  - Endpoint: PUT /api/user/profile/update (consistent with updateUserProfile above)
+//  - Returns updated user profile object
+export const elevateUserToStoreAdmin = createAsyncThunk(
+  "/user/elevateStoreAdmin",
+  async (
+    { storeId, role }: { storeId: string; role?: string },
+    { dispatch, rejectWithValue }
+  ) => {
+    try {
+      const token = localStorage.getItem("jwt");
+      if (!token) return rejectWithValue("No active session");
+
+      const desiredRole = role || "ROLE_STORE_ADMIN";
+      const response = await api.put(
+        "/api/user/profile/update",
+        { role: desiredRole, storeId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Immediately patch auth state so UI unlocks dashboard access
+      dispatch(
+        setUserStoreContext({
+          storeId,
+          role: desiredRole,
+        })
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        (error as any).response?.data?.message ||
+          "Elevating user to store admin failed!"
       );
     }
   }

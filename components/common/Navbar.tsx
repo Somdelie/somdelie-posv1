@@ -13,14 +13,6 @@ import {
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -127,7 +119,7 @@ function Navbar() {
     <div className="sticky top-0 z-50">
       <nav className="bg-white/10 backdrop-blur-sm border-b border-white/20 shadow px-4 w-full overflow-hidden items-center flex h-[60px] justify-between">
         <div className="flex items-center gap-4">
-          <Sheet>
+          {/* <Sheet>
             <SheetTrigger>
               <span className="flex items-center justify-center h-8 w-8 bg-accent transition-colors rounded hover:bg-accent/80">
                 <Menu className=" text-white cursor-pointer" />
@@ -152,7 +144,7 @@ function Navbar() {
                 ))}
               </div>
             </SheetContent>
-          </Sheet>
+          </Sheet> */}
 
           <Link className="flex items-center" href="/">
             <Image
