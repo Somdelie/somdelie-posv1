@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAppSelector } from "@/redux-toolkit/hooks";
+import { useAuth } from "@/contexts/AuthContext";
 import { hasRoutePermission } from "@/lib/auth/permissions";
 import type { UserRole } from "@/lib/auth/permissions";
 import { Loader2 } from "lucide-react";
@@ -22,7 +22,7 @@ export function RouteGuard({
 }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading } = useAppSelector((state) => state.auth);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     // Wait for auth to load
@@ -35,7 +35,7 @@ export function RouteGuard({
       return;
     }
 
-    const userRole = (user.role || user.user?.role) as UserRole;
+    const userRole = user.role as UserRole;
 
     // Check if route is allowed for user's role
     if (userRole && !hasRoutePermission(userRole, pathname)) {
@@ -50,13 +50,13 @@ export function RouteGuard({
     }
 
     // If a store is required but missing, send to not-found (onboarding removed)
-    if (requireStore && !user.user?.storeId) {
+    if (requireStore && !user.storeId) {
       router.push("/not-found");
       return;
     }
 
     // Check if branch is required
-    if (requireBranch && !user.user?.branchId) {
+    if (requireBranch && !user.branchId) {
       router.push("/not-found");
       return;
     }

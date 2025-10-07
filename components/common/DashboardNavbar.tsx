@@ -1,7 +1,8 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { useAppDispatch, useAppSelector } from "@/redux-toolkit/hooks";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Store,
   Building2,
@@ -27,9 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { toast } from "react-toastify";
-import { logout } from "@/redux-toolkit/fetures/auth/authSlice";
-import { getUserProfile } from "@/redux-toolkit/fetures/user/userThunk";
+import { logoutAction } from "@/lib/actions/auth";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Breadcrumb,
@@ -60,7 +59,8 @@ const roleMenus = {
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
   ROLE_STORE_ADMIN: [
-    { label: "Dashboard", href: "/store/dashboard", icon: BarChart3 },
+    { label: "Dashboard", href: "/store", icon: BarChart3 },
+    { label: "Store Info", href: "/store/admin", icon: Store },
     { label: "Branches", href: "/store/branches", icon: Building2 },
     { label: "Products", href: "/store/products", icon: Package },
     { label: "Employees", href: "/store/employees", icon: Users },
@@ -68,10 +68,11 @@ const roleMenus = {
     { label: "Reports", href: "/store/reports", icon: FileText },
     { label: "Settings", href: "/store/settings", icon: Settings },
   ],
-  ROLE_BRANCH_CASHIER: [
+  ROLE_CASHIER: [
     { label: "Dashboard", href: "/cashier/dashboard", icon: BarChart3 },
+    { label: "POS", href: "/cashier/pos", icon: ShoppingCart },
     { label: "Products", href: "/cashier/products", icon: Package },
-    { label: "Orders", href: "/cashier/orders-history", icon: ShoppingCart },
+    { label: "Orders", href: "/cashier/orders", icon: ShoppingCart },
     { label: "Refunds", href: "/cashier/refunds", icon: AlertCircle },
     { label: "Customers", href: "/cashier/customers", icon: Users },
     { label: "Settings", href: "/cashier/settings", icon: Settings },
@@ -88,7 +89,7 @@ const roleMenus = {
     { label: "Dashboard", href: "/store-manager/dashboard", icon: BarChart3 },
     { label: "Branches", href: "/store-manager/branches", icon: Building2 },
     { label: "Products", href: "/store-manager/products", icon: Package },
-    { label: "Employees", href: "/store-manager/employees", icon: Users },
+    { label: "Employees", href: "/store/employees", icon: Users },
     { label: "Sales", href: "/store-manager/sales", icon: DollarSign },
     { label: "Reports", href: "/store-manager/reports", icon: FileText },
     { label: "Settings", href: "/store-manager/settings", icon: Settings },
@@ -98,30 +99,15 @@ const roleMenus = {
 const DashboardNavbar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
-  const { userProfile: user } = useAppSelector((state) => state.user) as {
-    userProfile: {
-      role: keyof typeof roleMenus;
-      fullName?: string;
-      email?: string;
-    } | null;
-  };
+  const { user } = useAuth();
   const [activeMenu, setActiveMenu] = useState("Dashboard");
-
-  // Fetch user profile on mount if not available
-  useEffect(() => {
-    const token = localStorage.getItem("jwt");
-    if (token && !user) {
-      dispatch(getUserProfile(token));
-    }
-  }, [dispatch, user]);
 
   // Update active menu based on current pathname
   useEffect(() => {
     if (!user?.role || !pathname) return;
 
     const userMenus = roleMenus[user.role as keyof typeof roleMenus] || [];
-    const pathSegments = pathname.split("/").filter(Boolean); // split and remove empty segments
+    const pathSegments = pathname.split("/").filter(Boolean);
 
     let bestMatchLabel = "Dashboard";
     let bestMatchScore = -1;
@@ -156,7 +142,7 @@ const DashboardNavbar = () => {
       ROLE_USER: "/user/profile",
       ROLE_ADMIN: "/admin/profile",
       ROLE_STORE_ADMIN: "/store/profile",
-      ROLE_BRANCH_CASHIER: "/store/cashier/profile",
+      ROLE_CASHIER: "/cashier/profile",
       ROLE_BRANCH_MANAGER: "/branch-manager/profile",
       ROLE_STORE_MANAGER: "/store-manager/profile",
     };
@@ -170,7 +156,7 @@ const DashboardNavbar = () => {
       ROLE_USER: "/user/settings",
       ROLE_ADMIN: "/admin/settings",
       ROLE_STORE_ADMIN: "/store/settings",
-      ROLE_BRANCH_CASHIER: "/store/cashier/settings",
+      ROLE_CASHIER: "/cashier/settings",
       ROLE_BRANCH_MANAGER: "/branch-manager/settings",
       ROLE_STORE_MANAGER: "/store-manager/settings",
     };
@@ -180,21 +166,10 @@ const DashboardNavbar = () => {
   // Handle logout
   const handleLogout = async () => {
     try {
-      // Clear localStorage
-      localStorage.removeItem("jwt");
-
-      // Clear JWT cookie
-      document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-      // Dispatch logout action (if you have one)
-      await dispatch(logout());
-
-      toast.success("Logged out successfully!");
-
-      // Redirect to login page
+      // Use server action for logout
+      await logoutAction();
       router.push("/auth/login");
     } catch (error) {
-      toast.error("Error logging out. Please try again.");
       console.error("Logout error:", error);
     }
   };
@@ -232,9 +207,8 @@ const DashboardNavbar = () => {
     return breadcrumbs;
   };
 
-  console.log("logged in user:", user?.email);
-
   const breadcrumbs = generateBreadcrumbs();
+
   // Get user initials
   const getUserInitials = () => {
     if (user?.fullName) {
@@ -246,8 +220,9 @@ const DashboardNavbar = () => {
     }
     return "U";
   };
+
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <header className="flex h-[calc(var(--header-height))] shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-[calc(var(--header-height))]">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -255,7 +230,6 @@ const DashboardNavbar = () => {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <div className="flex flex-col">
-          {" "}
           <h1 className="text-base font-bold">Cautie Shoppings</h1>
           <Breadcrumb>
             <BreadcrumbList>
@@ -269,7 +243,7 @@ const DashboardNavbar = () => {
                     ) : (
                       <BreadcrumbLink
                         href={crumb.href}
-                        className=" hover:text-teal-300 transition-colors"
+                        className="hover:text-teal-300 transition-colors"
                       >
                         {crumb.label}
                       </BreadcrumbLink>

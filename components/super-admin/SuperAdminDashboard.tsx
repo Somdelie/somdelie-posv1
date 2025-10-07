@@ -1,230 +1,158 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Store, Users, TrendingUp, BarChart3 } from "lucide-react";
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/redux-toolkit/hooks";
+import { Store, Users, TrendingUp, BarChart3, Shield } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { getStores } from "@/redux-toolkit/fetures/store/storeThunk";
-import { getAllUsers } from "@/redux-toolkit/fetures/user/userThunk";
 
 export function SuperAdminDashboard() {
-  const dispatch = useAppDispatch();
-  const {
-    userProfile,
-    users,
-    loading: usersLoading,
-  } = useAppSelector((state: any) => state.user);
-  const {
-    stores,
-    loading: storesLoading,
-    error: storesError,
-  } = useAppSelector((state: any) => state.store);
-  const { token } = useAppSelector((state: any) => state.auth);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    // Get token from localStorage since Redux doesn't persist auth state
-    const jwtToken = localStorage.getItem("jwt") || token;
+  if (loading) {
+    return (
+      <div className="container mx-auto py-10 px-4">
+        <div className="flex items-center justify-center">
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-    console.log("Token from Redux:", token);
-    console.log("Token from localStorage:", jwtToken);
-
-    // Fetch stores and users on mount
-    if (jwtToken) {
-      console.log("Dispatching getStores and getAllUsers...");
-      dispatch(getStores());
-      dispatch(getAllUsers(jwtToken));
-    } else {
-      console.warn("No token available, skipping data fetch");
-    }
-  }, [dispatch, token]);
-
-  // Log stores data when it changes
-  useEffect(() => {
-    console.log(stores, "stores data");
-    console.log(users, "users data");
-    console.log("storesLoading:", storesLoading);
-    console.log("usersLoading:", usersLoading);
-    console.log("storesError:", storesError);
-  }, [stores, users, storesLoading, usersLoading, storesError]);
-
-  // Calculate totals from real data
-  const totalStores = stores?.length || 0;
-  const totalUsers = users?.length || 0;
+  if (!user) {
+    return (
+      <div className="container mx-auto py-10 px-4">
+        <Card>
+          <CardContent className="p-6">
+            <p>Please log in to access the admin dashboard.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="container mx-auto py-10 px-4">
+      <div className="flex flex-col space-y-6">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-            Super Admin Dashboard
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Welcome back, {userProfile?.fullName || "Admin"}! Here&apos;s your
-            system overview.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <Shield className="h-8 w-8 text-blue-600" />
+              Super Admin Dashboard
+            </h1>
+            <p className="text-muted-foreground">Welcome back, {user.email}</p>
+          </div>
         </div>
 
-        {/* PORT=5000
-DATA_URL=jdbc:mysql://localhost:3306/somdelie_pos
-DATASOURCE_USER=root
-DATASOURCE_PASSWORD=Zola@1990 */}
-
-        {/* set APPLICATION_NAME= */}
-        {/* $env:APPLICATION_NAME="somdelie-pos-backend"
-        $env:DATASOURCE_URL="jdbc:mysql://localhost:3306/somdelie_pos"
-        $env:DATASOURCE_USERNAME="root"
-        $env:DATASOURCE_PASSWORD="Zola@1990" */}
-        {/* $env:PORT=5000 */}
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Total Stores */}
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-600 rounded-lg">
-                  <Store className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex items-center gap-1 text-green-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm font-semibold">+8%</span>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  Total Stores
-                </p>
-                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-1">
-                  {totalStores}
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                  Across all locations
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Users */}
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 dark:border-green-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-600 rounded-lg">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex items-center gap-1 text-green-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm font-semibold">+5%</span>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                  Total Users
-                </p>
-                <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-1">
-                  {totalUsers}
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                  System-wide employees
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Stores & Top Branches */}
-        <div className="grid grid-cols-1 gap-6 mb-6">
-          {/* Recent Stores */}
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  All Stores
-                </h3>
-                <Link href="/super-admin/stores">
-                  <Button variant="outline" size="sm">
-                    Manage Stores
-                  </Button>
-                </Link>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Stores
+              </CardTitle>
+              <Store className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {storesLoading || usersLoading ? (
-                <div className="text-center py-8 text-slate-500">
-                  Loading stores...
-                </div>
-              ) : storesError ? (
-                <div className="text-center py-8 text-red-500">
-                  Error loading stores: {JSON.stringify(storesError)}
-                </div>
-              ) : stores && stores.length > 0 ? (
-                <div className="space-y-4">
-                  {stores.slice(0, 5).map((store: any) => (
-                    <div
-                      key={store.id}
-                      className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded">
-                          <Store className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-900 dark:text-slate-100">
-                            {store.name || "Unnamed Store"}
-                          </p>
-                          <p className="text-xs text-slate-600 dark:text-slate-400">
-                            {store.branches?.length || 0} branches •{" "}
-                            {store.status || "Active"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-500">
-                          {store.location || "Location N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-slate-500">
-                  No stores found
-                </div>
-              )}
+              <div className="text-2xl font-bold">--</div>
+              <p className="text-xs text-muted-foreground">
+                Data will be loaded with server actions
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">--</div>
+              <p className="text-xs text-muted-foreground">
+                Data will be loaded with server actions
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$--</div>
+              <p className="text-xs text-muted-foreground">
+                +--% from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">--</div>
+              <p className="text-xs text-muted-foreground">
+                +--% from last month
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Store Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Manage all stores in the system
+              </p>
+              <div className="flex space-x-2">
+                <Button asChild>
+                  <Link href="/admin/stores">View All Stores</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/admin/stores/create">Create Store</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Manage system users and permissions
+              </p>
+              <div className="flex space-x-2">
+                <Button asChild>
+                  <Link href="/admin/users">View All Users</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/admin/users/create">Create User</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
         <Card>
           <CardHeader>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Quick Actions
-            </h3>
+            <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <Link href="/super-admin/stores/new">
-                <Button className="w-full h-24 flex flex-col gap-2 bg-blue-600 hover:bg-blue-700">
-                  <Store className="h-6 w-6" />
-                  <span>Add New Store</span>
-                </Button>
-              </Link>
-              <Link href="/super-admin/users">
-                <Button className="w-full h-24 flex flex-col gap-2 bg-green-600 hover:bg-green-700">
-                  <Users className="h-6 w-6" />
-                  <span>Manage Users</span>
-                </Button>
-              </Link>
-              <Link href="/super-admin/reports">
-                <Button className="w-full h-24 flex flex-col gap-2 bg-orange-600 hover:bg-orange-700">
-                  <BarChart3 className="h-6 w-6" />
-                  <span>View Reports</span>
-                </Button>
-              </Link>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Recent system activity will be displayed here once server actions
+              are implemented.
+            </p>
           </CardContent>
         </Card>
       </div>

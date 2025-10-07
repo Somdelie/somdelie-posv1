@@ -1,21 +1,48 @@
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/redux-toolkit/hooks";
-import { fetchCurrentUserStore } from "@/redux-toolkit/fetures/store/storeThunk";
+import { useEffect, useState } from "react";
+import { getCurrentUserStore } from "@/lib/actions/store";
+import type { Store } from "@/lib/actions/store";
 
 export function useCurrentStore(autoFetch: boolean = true) {
-  const dispatch = useAppDispatch();
-  const { selectedStore, selectedStoreLoading } = useAppSelector(
-    (s) => s.store
-  );
-  const storeId = useAppSelector(
-    (s) => s.auth.user?.user?.storeId || (s.auth.user as any)?.storeId
-  );
+  const [store, setStore] = useState<Store | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (autoFetch && storeId && !selectedStore && !selectedStoreLoading) {
-      dispatch(fetchCurrentUserStore());
-    }
-  }, [autoFetch, storeId, selectedStore, selectedStoreLoading, dispatch]);
+    if (!autoFetch) return;
 
-  return { store: selectedStore, loading: selectedStoreLoading };
+    const fetchStore = async () => {
+      try {
+        setLoading(true);
+        const currentStore = await getCurrentUserStore();
+        setStore(currentStore);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch store information");
+        setStore(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStore();
+  }, [autoFetch]);
+
+  return {
+    store,
+    loading,
+    error,
+    refetch: async () => {
+      setLoading(true);
+      try {
+        const currentStore = await getCurrentUserStore();
+        setStore(currentStore);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch store information");
+        setStore(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+  };
 }
