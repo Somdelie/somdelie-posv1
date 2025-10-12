@@ -33,21 +33,62 @@ function SubmitButton() {
 export default function LoginForm() {
   const [state, formAction] = useActionState(loginAction, { success: true });
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const { refreshUser } = useAuth();
 
   // Handle client-side redirect after successful login
   useEffect(() => {
-    if (state.success && state.redirectPath) {
+    // Prevent multiple redirects
+    if (isRedirecting) return;
+
+    if (state.success && state.redirectPath && !isRedirecting) {
+      setIsRedirecting(true);
       toast.success("Login successful! Redirecting...");
-      // Refresh user data before redirecting
-      refreshUser().then(() => {
-        router.push(state.redirectPath!);
-      });
+
+      const handleRedirect = async () => {
+        try {
+          console.log("Attempting redirect to:", state.redirectPath);
+
+          // Refresh user data first
+          await refreshUser();
+
+          // Use window.location.href for more reliable redirect in production
+          setTimeout(() => {
+            if (typeof window !== "undefined") {
+              window.location.href = state.redirectPath!;
+            } else {
+              router.push(state.redirectPath!);
+            }
+          }, 500);
+        } catch (error) {
+          console.error("Redirect error:", error);
+          setIsRedirecting(false);
+
+          // Fallback redirect to dashboard
+          setTimeout(() => {
+            if (typeof window !== "undefined") {
+              window.location.href = "/dashboard";
+            } else {
+              router.push("/dashboard");
+            }
+          }, 500);
+        }
+      };
+
+      handleRedirect();
     } else if (!state.success && state.error) {
       toast.error(state.error);
+      setIsRedirecting(false);
     }
-  }, [state, router, refreshUser]);
+  }, [
+    state.success,
+    state.redirectPath,
+    state.error,
+    router,
+    refreshUser,
+    isRedirecting,
+  ]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -78,6 +119,7 @@ export default function LoginForm() {
                 type="text"
                 placeholder="Enter your username or email"
                 required
+                disabled={isRedirecting}
               />
             </div>
 
@@ -98,11 +140,13 @@ export default function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   required
+                  disabled={isRedirecting}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                  disabled={isRedirecting}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -110,6 +154,13 @@ export default function LoginForm() {
             </div>
 
             <SubmitButton />
+
+            {isRedirecting && (
+              <div className="text-center text-sm text-green-600 flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Redirecting to dashboard...
+              </div>
+            )}
           </form>
         </CardContent>
 
