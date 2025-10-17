@@ -172,6 +172,7 @@ export async function createEmployee(
 
 // Get all employees for a store
 export async function getStoreEmployees(storeId: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   try {
     if (!storeId) {
       return { success: false, error: "Store ID is required" };
@@ -183,15 +184,12 @@ export async function getStoreEmployees(storeId: string) {
       return { success: false, error: "Not authenticated" };
     }
 
-    const response = await fetch(
-      `http://localhost:5000/api/employees/store/${storeId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      }
-    );
+    const response = await fetch(`${baseUrl}/api/employees/store/${storeId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
 
     if (!response.ok) {
       return { success: false, error: "Failed to fetch employees" };
