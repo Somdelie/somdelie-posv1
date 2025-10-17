@@ -186,7 +186,8 @@ export async function getStoreBranches(storeId: string) {
 
     console.log("2. JWT token obtained successfully");
 
-    const apiUrl = `http://localhost:5000/api/branches/store/${storeId}`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const apiUrl = `${baseUrl}/api/branches/store/${storeId}`;
     console.log("3. Making API call to:", apiUrl);
 
     const response = await fetch(apiUrl, {
