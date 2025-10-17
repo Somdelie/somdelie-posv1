@@ -358,7 +358,7 @@ export default async function StoreAdminPage() {
                 </a>
 
                 <a
-                  href="/store/users"
+                  href="/store/employees"
                   className="group flex items-center justify-between p-4 rounded-xl border-2 hover:border-orange-200 dark:hover:border-orange-800 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-all duration-200"
                 >
                   <div className="flex items-center gap-3">
@@ -366,7 +366,7 @@ export default async function StoreAdminPage() {
                       <Users className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-sm">Manage Users</p>
+                      <p className="font-semibold text-sm">Manage Employees</p>
                       <p className="text-xs text-muted-foreground">
                         Add employees and manage permissions
                       </p>

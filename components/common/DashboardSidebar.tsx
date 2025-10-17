@@ -60,7 +60,7 @@ const roleMenus = {
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
   ROLE_BRANCH_MANAGER: [
-    { label: "Dashboard", href: "/branch-manager/dashboard", icon: BarChart3 },
+    { label: "Dashboard", href: "/branch-manager", icon: BarChart3 },
     { label: "Cashiers", href: "/branch-manager/cashiers", icon: Users },
     { label: "Products", href: "/branch-manager/products", icon: Package },
     { label: "Sales", href: "/branch-manager/sales", icon: DollarSign },
