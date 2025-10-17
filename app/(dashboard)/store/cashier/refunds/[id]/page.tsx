@@ -1,3 +1,7 @@
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/actions/auth";
+import { getRefundById } from "@/lib/actions/refunds";
+import { getOrderById } from "@/lib/actions/orders";
 import ReturnDetails from "@/components/cashier/refunds/ReturnDetails";
 
 type RefundDetailsPageProps = {
@@ -6,65 +10,142 @@ type RefundDetailsPageProps = {
   }>;
 };
 
-// Sample order data - in production, this would come from a database query
-const orderData = {
-  id: 13,
-  orderNumber: "Order 13",
-  createdAt: "Jul 12, 2025, 09:47 PM",
-  paymentMethod: "CASH",
-  customer: {
-    fullName: "Chitrodo Sharma",
-    phone: "7659123890",
-    email: "chitrodo@example.com",
-    address: "123 Main St, Cityville, ST 12345",
-  },
-  totalItems: 2,
-  orderTotal: 998.0,
-  items: [
-    {
-      id: "18",
-      name: "Men Geometric Print Polo Neck Pure Cotton Black T-Shirt",
-      quantity: 1,
-      price: 599.0,
-    },
-    {
-      id: "19",
-      name: "Men Slim Fit Checkered Spread Collar Casual Shirt (Pack of 2)",
-      quantity: 1,
-      price: 399.0,
-    },
-  ],
-  cashier: {
-    fullName: "John Doe",
-    id: "cashier-1",
-  },
-  refund: {
-    id: "refund-1",
-    reason: "Damaged item returned",
-    amount: 500,
-    createdAt: "2024-06-01 11:00 AM",
-    refundMethod: "CASH",
-    itemsReturned: [
-      {
-        id: "18",
-        name: "Men Geometric Print Polo Neck Pure Cotton Black T-Shirt",
-        quantity: 1,
-        refundAmount: 299.0,
-      },
-      {
-        id: "19",
-        name: "Men Slim Fit Checkered Spread Collar Casual Shirt (Pack of 2)",
-        quantity: 1,
-        refundAmount: 201.0,
-      },
-    ],
-  },
-};
-
 export default async function RefundDetailsPage({
   params,
 }: RefundDetailsPageProps) {
   const { id } = await params;
 
+  // Get current user for role-based access control
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Fetch refund data from API
+  const refundResult = await getRefundById(id);
+
+  if (!refundResult.success || !refundResult.data) {
+    redirect("/store/cashier/refunds");
+  }
+
+  const refund = refundResult.data;
+
+  // Role-based access control
+  const canAccessRefund = checkRefundAccess(user, refund);
+
+  if (!canAccessRefund) {
+    redirect("/store/cashier/refunds");
+  }
+
+  // Fetch related order data
+  const orderResult = refund.orderId
+    ? await getOrderById(refund.orderId)
+    : { success: false, data: null };
+
+  if (!orderResult.success || !orderResult.data) {
+    redirect("/store/cashier/refunds");
+  }
+
+  const order = orderResult.data;
+
+  // Transform API data to match component props
+  const orderData = {
+    id: parseInt(refund.id.slice(-8), 16) || 0, // Convert UUID to number
+    orderNumber: order.orderNumber || `#${order.id.slice(0, 8)}`,
+    createdAt: new Date(order.createdAt).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }),
+    paymentMethod: order.paymentType || "CASH",
+    customer: {
+      fullName: order.customer?.fullName || "Walk-in Customer",
+      phone: order.customer?.phone || "N/A",
+      email: order.customer?.email,
+      address: order.customer?.address,
+    },
+    totalItems: order.items?.length || 0,
+    orderTotal: order.totalAmount || 0,
+    items:
+      order.items?.map((item) => ({
+        id: item.productId,
+        name: item.productName || `Product #${item.productId.slice(0, 8)}`,
+        quantity: item.quantity,
+        price: item.price,
+      })) || [],
+    cashier: {
+      fullName: refund.cashier?.fullName || refund.cashierName || "Unknown",
+      id: refund.cashier?.id || "",
+    },
+    refund: {
+      id: refund.id,
+      reason: refund.reason,
+      amount: refund.amount,
+      createdAt: new Date(refund.createdAt).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }),
+      refundMethod: refund.paymentType || "CASH",
+      status: "COMPLETED" as const,
+      itemsReturned:
+        order.items?.map((item) => ({
+          id: item.productId,
+          name: item.productName || `Product #${item.productId.slice(0, 8)}`,
+          quantity: item.quantity,
+          refundAmount: item.price * item.quantity,
+        })) || [],
+    },
+  };
+
   return <ReturnDetails order={orderData} />;
+}
+
+/**
+ * Check if user has access to view this refund based on their role
+ */
+function checkRefundAccess(user: any, refund: any): boolean {
+  const role = user.role;
+
+  switch (role) {
+    case "ROLE_SUPER_ADMIN":
+    case "ROLE_STORE_ADMIN":
+      // Super Admin and Store Admin can see all refunds
+      return true;
+
+    case "ROLE_STORE_MANAGER":
+      // Store Manager can see refunds in their store
+      return user.storeId === refund.order?.storeId;
+
+    case "ROLE_BRANCH_MANAGER":
+      // Branch Manager can see refunds in their branch
+      // Use refund.branchId since order might be null
+      return (
+        user.branchId === refund.branchId ||
+        user.branchId === refund.order?.branchId
+      );
+
+    case "ROLE_BRANCH_CASHIER":
+      // Cashier can see their own refunds
+      // Check by ID if cashier object is populated
+      if (refund.cashier?.id) {
+        return user.id === refund.cashier.id;
+      }
+      // Fallback: check by fullName if cashierName is populated
+      if (refund.cashierName && user.fullName) {
+        return user.fullName === refund.cashierName;
+      }
+      // Last fallback: check by branch (cashiers can see refunds from their branch)
+      return user.branchId === refund.branchId;
+
+    default:
+      return false;
+  }
 }

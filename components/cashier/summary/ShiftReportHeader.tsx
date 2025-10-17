@@ -9,12 +9,12 @@ const ShiftReportHeader = () => {
         <h1 className="text-2xl font-semibold text-emerald-600">
           Shift Summary
         </h1>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant={"destructive"} className="flex items-center">
             <ArrowRight className="mr-2 h-4 w-4" />
             End Shift & Logout
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

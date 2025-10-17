@@ -25,6 +25,11 @@ import {
   Rocket,
   LogOut,
   User,
+  Search,
+  UserPlus,
+  History,
+  TrendingUp,
+  RefreshCcw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -69,11 +74,46 @@ const roleMenus = {
     { label: "Settings", href: "/branch-manager/settings", icon: Settings },
   ],
   ROLE_CASHIER: [
-    { label: "POS", href: "/cashier/pos", icon: ShoppingCart },
-    { label: "Customers", href: "/cashier/customers", icon: Users },
-    { label: "Orders", href: "/cashier/orders", icon: FileText },
-    { label: "Refunds", href: "/cashier/refunds", icon: AlertCircle },
-    { label: "Profile", href: "/cashier/profile", icon: User },
+    { label: "Dashboard", href: "/store/cashier/summary", icon: BarChart3 },
+    { label: "POS", href: "/store/cashier", icon: ShoppingCart },
+    {
+      label: "Customer Lookup",
+      href: "/store/cashier/customer-lookup",
+      icon: Search,
+    },
+    {
+      label: "Order History",
+      href: "/store/cashier/orders-history",
+      icon: History,
+    },
+    { label: "Refunds", href: "/store/cashier/refunds", icon: RefreshCcw },
+    {
+      label: "My Performance",
+      href: "/store/cashier/performance",
+      icon: TrendingUp,
+    },
+    { label: "Profile", href: "/store/cashier/profile", icon: User },
+  ],
+  ROLE_BRANCH_CASHIER: [
+    { label: "Dashboard", href: "/store/cashier/summary", icon: BarChart3 },
+    { label: "POS", href: "/store/cashier", icon: ShoppingCart },
+    {
+      label: "Customer Lookup",
+      href: "/store/cashier/customer-lookup",
+      icon: Search,
+    },
+    {
+      label: "Order History",
+      href: "/store/cashier/orders-history",
+      icon: History,
+    },
+    { label: "Refunds", href: "/store/cashier/refunds", icon: RefreshCcw },
+    {
+      label: "My Performance",
+      href: "/store/cashier/performance",
+      icon: TrendingUp,
+    },
+    { label: "Profile", href: "/store/cashier/profile", icon: User },
   ],
   ROLE_STORE_ADMIN: [
     { label: "Dashboard", href: "/store", icon: BarChart3 },
@@ -182,29 +222,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent className="p-4">
-        {/* User Info */}
-        {user && (
-          <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm font-medium">{user.email}</p>
-            <p className="text-xs text-muted-foreground">{user.role}</p>
-            {user.branchId && (
-              <p className="text-xs text-muted-foreground">
-                Branch: {user.branchId}
-              </p>
-            )}
-            {user.storeId && (
-              <p className="text-xs text-muted-foreground">
-                Store: {user.storeId}
-              </p>
-            )}
-            {needsStoreSetup && (
-              <div className="mt-2 p-2 bg-amber-100 border border-amber-300 rounded text-xs text-amber-800">
-                ⚠️ Please create your store to access all features
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Navigation Menu */}
         <SidebarMenu>
           {menuItems.map((item) => (
@@ -221,6 +238,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
+        {/* User Info */}
+        {user && (
+          <div className="mb-6 p-4 bg-muted/80 rounded">
+            <p className="text-sm font-medium">{user.email}</p>
+            {needsStoreSetup && (
+              <div className="mt-2 p-2 bg-amber-100 border border-amber-300 rounded text-xs text-amber-800">
+                ⚠️ Please create your store to access all features
+              </div>
+            )}
+          </div>
+        )}
         <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut className="w-4 h-4 mr-2" />
           Logout

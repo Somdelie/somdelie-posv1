@@ -1,5 +1,5 @@
-import ProfilePage from "@/components/profile/ProfilePage";
+import UserProfilePage from "@/app/(dashboard)/user/profile/page";
 
 export default function CashierProfilePage() {
-  return <ProfilePage />;
+  return <UserProfilePage />;
 }
