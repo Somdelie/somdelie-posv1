@@ -18,8 +18,6 @@ import {
 import { getCurrentUser } from "@/lib/actions/auth";
 import { getStoreById } from "@/lib/actions/store";
 import { redirect } from "next/navigation";
-import { StoreAnalytics } from "@/components/analytics/StoreAnalytics";
-
 export default async function StoreAdminPage() {
   // Get current user to extract storeId
   const user = await getCurrentUser();
@@ -379,12 +377,6 @@ export default async function StoreAdminPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      {/* Analytics Section */}
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Store Analytics</h2>
-        <StoreAnalytics storeId={user.storeId} />
       </div>
     </div>
   );

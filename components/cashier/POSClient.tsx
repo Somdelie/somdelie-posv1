@@ -102,7 +102,13 @@ export default function POSClient({
   });
 
   const handleDownloadPDF = async () => {
-    if (!receiptRef.current) {
+    // Find the dialog containing the receipt
+    const dialog = receiptRef.current?.closest(
+      ".dialog-content, [role='dialog'], .max-w-md"
+    );
+    const target = dialog instanceof HTMLElement ? dialog : receiptRef.current;
+
+    if (!target) {
       toast.error("Receipt not ready. Please try again.");
       return;
     }
@@ -110,7 +116,35 @@ export default function POSClient({
     try {
       toast.info("Generating PDF...");
 
-      const canvas = await html2canvas(receiptRef.current, {
+      // Sanitize lab() colors in the dialog/receipt DOM
+      const sanitizeColors = (element: HTMLElement) => {
+        const all = [element, ...element.querySelectorAll("*")];
+        all.forEach((el) => {
+          // Check inline style attribute
+          if (el.hasAttribute("style")) {
+            let styleAttr = el.getAttribute("style") || "";
+            if (
+              styleAttr.match(/lab\([^)]+\)/g) ||
+              styleAttr.match(/oklch\([^)]+\)/g)
+            ) {
+              styleAttr = styleAttr.replace(/lab\([^)]+\)/g, "#222");
+              styleAttr = styleAttr.replace(/oklch\([^)]+\)/g, "#222");
+              el.setAttribute("style", styleAttr);
+            }
+          }
+          // Check computed styles
+          const style = window.getComputedStyle(el);
+          ["color", "backgroundColor", "borderColor"].forEach((prop) => {
+            const value = style.getPropertyValue(prop);
+            if (value.includes("lab(") || value.includes("oklch(")) {
+              (el as HTMLElement).style.setProperty(prop, "#222", "important");
+            }
+          });
+        });
+      };
+      sanitizeColors(target);
+
+      const canvas = await html2canvas(target, {
         scale: 2,
         useCORS: true,
         logging: false,
@@ -321,7 +355,7 @@ export default function POSClient({
     try {
       // Get customer info
       const customer =
-        selectedCustomer && selectedCustomer !== "walk-in"
+        selectedCustomer && selectedCustomer !== "Please select a customer"
           ? customers.find((c) => c.id === selectedCustomer)
           : null;
 

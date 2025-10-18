@@ -8,34 +8,35 @@ import {
 } from "lucide-react";
 import React from "react";
 
-const shiftData = {
-  topSellingProducts: [
-    {
-      id: 1,
-      name: "Men T-Shirt Blue",
-      quantity: 50,
-      sellingPrice: 1000,
-    },
-    {
-      id: 2,
-      name: "Women T-Shirt Red",
-      quantity: 30,
-      sellingPrice: 1200,
-    },
-    {
-      id: 3,
-      name: "Kids Hoodie Green",
-      quantity: 20,
-      sellingPrice: 1500,
-    },
-  ],
-};
+interface TopSellingItemsProps {
+  topSellingProducts: Array<{
+    id: number | string;
+    name: string;
+    quantity: number;
+    quantitySold?: number;
+    sellingPrice: number;
+  }>;
+}
 
-const TopSellingItems = () => {
-  const totalQuantitySold = shiftData.topSellingProducts.reduce(
-    (sum, product) => sum + product.quantity,
-    0
-  );
+const TopSellingItems = ({ topSellingProducts }: TopSellingItemsProps) => {
+  // Debug: Log the raw data to see the actual structure
+  console.log("Raw topSellingProducts:", topSellingProducts);
+
+  // Use quantitySold if present, fallback to quantity, else 0
+  const totalQuantitySold = topSellingProducts.reduce((sum, product) => {
+    const qty =
+      typeof product.quantitySold === "number" && !isNaN(product.quantitySold)
+        ? product.quantitySold
+        : typeof product.quantity === "number" && !isNaN(product.quantity)
+        ? product.quantity
+        : 0;
+    console.log(
+      `Product: ${product.name}, QuantitySold: ${product.quantitySold}, Quantity: ${product.quantity}, Parsed: ${qty}`
+    );
+    return sum + qty;
+  }, 0);
+
+  console.log("Total Quantity Sold:", totalQuantitySold);
 
   const getRankColor = (index: number) => {
     switch (index) {
@@ -54,6 +55,8 @@ const TopSellingItems = () => {
     if (index === 0) return <TrophyIcon className="size-3 text-white" />;
     return <TrendingUpIcon className="size-3 text-white" />;
   };
+
+  console.log("Top Selling Products:", topSellingProducts);
 
   return (
     <Card className="relative overflow-hidden border-0 shadow bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-100 dark:from-orange-950 dark:via-amber-950 dark:to-yellow-950 hover:shadow transition-all duration-300 group">
@@ -74,12 +77,27 @@ const TopSellingItems = () => {
 
         {/* Top Selling Products */}
         <div className="space-y-1">
-          {shiftData.topSellingProducts.map((product, index) => {
-            const percentage = (
-              (product.quantity / totalQuantitySold) *
-              100
-            ).toFixed(1);
-            const totalRevenue = product.quantity * product.sellingPrice;
+          {topSellingProducts.map((product, index) => {
+            const qty =
+              typeof product.quantitySold === "number" &&
+              !isNaN(product.quantitySold)
+                ? product.quantitySold
+                : typeof product.quantity === "number" &&
+                  !isNaN(product.quantity)
+                ? product.quantity
+                : 0;
+            const price =
+              typeof product.sellingPrice === "number" &&
+              !isNaN(product.sellingPrice)
+                ? product.sellingPrice
+                : 0;
+            const percentRaw =
+              totalQuantitySold > 0 ? (qty / totalQuantitySold) * 100 : 0;
+            const percentage = isNaN(percentRaw)
+              ? "0.0"
+              : percentRaw.toFixed(1);
+            const totalRevenueRaw = qty * price;
+            const totalRevenue = isNaN(totalRevenueRaw) ? 0 : totalRevenueRaw;
 
             return (
               <div
@@ -106,7 +124,7 @@ const TopSellingItems = () => {
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1">
                         <PackageIcon className="size-3" />
-                        Qty: {product.quantity}
+                        Qty: {qty}
                       </span>
                       <span>@ {formatPrice(product.sellingPrice)}</span>
                     </div>

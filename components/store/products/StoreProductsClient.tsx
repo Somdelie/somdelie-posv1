@@ -38,6 +38,7 @@ import {
   getStoreProducts,
   updateProduct,
 } from "@/lib/actions/products";
+import ProductImageUpload from "@/components/store/ProductImageUpload";
 
 export default function StoreProductsClient({ storeId }: { storeId: string }) {
   const [loading, setLoading] = useState(true);
@@ -309,6 +310,14 @@ export default function StoreProductsClient({ storeId }: { storeId: string }) {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Product Image Upload
+                  </label>
+                  <ProductImageUpload
+                    onUpload={(url) => setForm({ ...form, image: url })}
+                  />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-foreground mb-2">

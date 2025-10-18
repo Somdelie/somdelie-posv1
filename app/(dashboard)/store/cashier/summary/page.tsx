@@ -69,16 +69,27 @@ export default function CashierSummaryPage() {
       <ShiftReportHeader />
       <div className="flex-1 overflow-auto p-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-6">
-          <ShiftInformationCard onShiftStarted={fetchCurrentShift} />
-          <SalesSummaryCard />
+          <ShiftInformationCard
+            onShiftStarted={fetchCurrentShift}
+            shift={currentShift}
+          />
+          <SalesSummaryCard
+            totalSales={currentShift.totalSales}
+            totalRefunds={currentShift.totalRefunds}
+            netSales={currentShift.netSale}
+          />
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-6">
-          <PaymentSummaryCard />
-          <TopSellingItems />
+          <PaymentSummaryCard
+            paymentSummaries={currentShift.paymentSummaries || []}
+          />
+          <TopSellingItems
+            topSellingProducts={currentShift.topSellProducts || []}
+          />
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-6">
-          <RecentOrdersTable />
-          <RefundsTable />
+          <RecentOrdersTable recentOrders={currentShift.recentOrders || []} />
+          <RefundsTable refunds={currentShift.refunds || []} />
         </div>
       </div>
     </div>

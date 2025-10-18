@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { redirect } from "next/navigation";
-import { StoreAnalytics } from "@/components/analytics/StoreAnalytics";
+// import { StoreAnalytics } from "@/components/analytics/StoreAnalytics";
 
 export default async function StoreManagerDashboard() {
   const user = await getCurrentUser();
@@ -27,7 +27,6 @@ export default async function StoreManagerDashboard() {
 
   return (
     <div className="container mx-auto py-6 px-4 space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Building2 className="h-8 w-8" />
@@ -37,9 +36,13 @@ export default async function StoreManagerDashboard() {
           Monitor store performance and analytics
         </p>
       </div>
-
-      {/* Analytics */}
-      <StoreAnalytics storeId={user.storeId} />
+      <Card>
+        <CardContent className="py-10">
+          <p className="text-center text-muted-foreground">
+            Analytics modules are temporarily disabled.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

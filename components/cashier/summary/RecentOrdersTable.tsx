@@ -17,40 +17,11 @@ import {
 } from "lucide-react";
 import React from "react";
 
-const shiftData = {
-  recentOrders: [
-    {
-      id: 1,
-      orderNumber: "ORD-1001",
-      createdAt: "2024-06-01 10:00 AM",
-      paymentType: "CASH",
-      totalAmount: 2500,
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-1002",
-      createdAt: "2024-06-01 10:15 AM",
-      paymentType: "CARD",
-      totalAmount: 1800,
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-1003",
-      createdAt: "2024-06-01 10:30 AM",
-      paymentType: "UPI",
-      totalAmount: 3200,
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-1004",
-      createdAt: "2024-06-01 10:45 AM",
-      paymentType: "CARD",
-      totalAmount: 950,
-    },
-  ],
-};
+interface RecentOrdersTableProps {
+  recentOrders: any[];
+}
 
-const RecentOrdersTable = () => {
+const RecentOrdersTable = ({ recentOrders }: RecentOrdersTableProps) => {
   const getPaymentIcon = (type: string) => {
     switch (type) {
       case "CASH":
@@ -114,7 +85,7 @@ const RecentOrdersTable = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {shiftData.recentOrders.slice(-3).map((order) => (
+                {recentOrders.slice(-3).map((order: any) => (
                   <TableRow
                     key={order.id}
                     className="border-slate-200/80 dark:border-slate-700/30 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors duration-200"
@@ -159,13 +130,13 @@ const RecentOrdersTable = () => {
                   <ReceiptIcon className="size-3 text-white" />
                 </div>
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Total Recent Orders: {shiftData.recentOrders.length}
+                  Total Recent Orders: {recentOrders.length}
                 </span>
               </div>
               <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                 {formatPrice(
-                  shiftData.recentOrders.reduce(
-                    (sum, order) => sum + order.totalAmount,
+                  recentOrders.reduce(
+                    (sum: number, order: any) => sum + order.totalAmount,
                     0
                   )
                 )}

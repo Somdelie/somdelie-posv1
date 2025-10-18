@@ -8,21 +8,21 @@ import {
 } from "lucide-react";
 import React from "react";
 
-const shiftData = {
-  cashier: {
-    fullName: "John Doe",
-  },
-  totalOrders: 45,
-  totalSales: 10000,
-  totalRefunds: 500,
-  netSales: 9500,
-};
+interface SalesSummaryCardProps {
+  totalSales: number | null;
+  totalRefunds: number | null;
+  netSales: number | null;
+}
 
-const SalesSummaryCard = () => {
-  const refundRate = (
-    (shiftData.totalRefunds / shiftData.totalSales) *
-    100
-  ).toFixed(1);
+const SalesSummaryCard = ({
+  totalSales,
+  totalRefunds,
+  netSales,
+}: SalesSummaryCardProps) => {
+  const refundRate =
+    totalSales && totalRefunds
+      ? ((totalRefunds / totalSales) * 100).toFixed(1)
+      : "0.0";
 
   return (
     <Card className="relative overflow-hidden border-0 shadow bg-gradient-to-br from-emerald-50 via-green-50 to-teal-100 dark:from-emerald-950 dark:via-green-950 dark:to-teal-950 hover:shadow transition-all duration-300 group">
@@ -53,7 +53,7 @@ const SalesSummaryCard = () => {
               </span>
             </div>
             <span className="font-bold text-sm text-green-600 dark:text-green-400">
-              {formatPrice(shiftData.totalSales)}
+              {formatPrice(totalSales ?? 0)}
             </span>
           </div>
 
@@ -68,7 +68,7 @@ const SalesSummaryCard = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm text-red-500">
-                {formatPrice(shiftData.totalRefunds)}
+                {formatPrice(totalRefunds ?? 0)}
               </span>
               <span className="text-xs text-red-400 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">
                 {refundRate}%
@@ -86,7 +86,7 @@ const SalesSummaryCard = () => {
               </span>
             </div>
             <span className="font-bold text-lg text-emerald-700 dark:text-emerald-300">
-              {formatPrice(shiftData.netSales)}
+              {formatPrice(netSales ?? 0)}
             </span>
           </div>
         </div>

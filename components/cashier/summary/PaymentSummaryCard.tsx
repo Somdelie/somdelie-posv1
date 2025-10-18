@@ -8,32 +8,20 @@ import {
 } from "lucide-react";
 import React from "react";
 
-const shiftData = {
-  paymentSummaries: [
-    {
-      type: "CASH",
-      totalAmount: 15000,
-      transactionCount: 30,
-    },
-    {
-      type: "CARD",
-      totalAmount: 25000,
-      transactionCount: 50,
-    },
-    {
-      type: "UPI",
-      totalAmount: 10000,
-      transactionCount: 20,
-    },
-  ],
-};
+interface PaymentSummaryCardProps {
+  paymentSummaries: Array<{
+    type: string;
+    totalAmount: number;
+    transactionCount: number;
+  }>;
+}
 
-const PaymentSummaryCard = () => {
-  const totalAmount = shiftData.paymentSummaries.reduce(
+const PaymentSummaryCard = ({ paymentSummaries }: PaymentSummaryCardProps) => {
+  const totalAmount = paymentSummaries.reduce(
     (sum, payment) => sum + payment.totalAmount,
     0
   );
-  const totalTransactions = shiftData.paymentSummaries.reduce(
+  const totalTransactions = paymentSummaries.reduce(
     (sum, payment) => sum + payment.transactionCount,
     0
   );
@@ -83,7 +71,7 @@ const PaymentSummaryCard = () => {
 
         {/* Payment Methods */}
         <div className="space-y-1">
-          {shiftData.paymentSummaries.map((payment, index) => {
+          {paymentSummaries.map((payment, index) => {
             const percentage = (
               (payment.totalAmount / totalAmount) *
               100

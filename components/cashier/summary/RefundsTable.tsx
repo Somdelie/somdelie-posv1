@@ -15,41 +15,13 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import React from "react";
+import { formatDate } from "@/lib/formatDate";
 
-const shiftData = {
-  refunds: [
-    {
-      id: 1,
-      orderNumber: "ORD-1005",
-      refundedAt: "2024-06-01 11:00 AM",
-      reason: "Damaged item returned",
-      amount: 500,
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-1003",
-      refundedAt: "2024-06-01 11:15 AM",
-      reason: "Wrong size",
-      amount: 750,
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-1001",
-      refundedAt: "2024-06-01 11:30 AM",
-      reason: "Customer changed mind",
-      amount: 300,
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-1007",
-      refundedAt: "2024-06-01 11:45 AM",
-      reason: "Defective product",
-      amount: 1200,
-    },
-  ],
-};
+interface RefundsTableProps {
+  refunds: any[];
+}
 
-const RefundsTable = () => {
+const RefundsTable = ({ refunds }: RefundsTableProps) => {
   const getReasonIcon = (reason: string) => {
     if (
       reason.toLowerCase().includes("damaged") ||
@@ -69,6 +41,8 @@ const RefundsTable = () => {
     }
     return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
   };
+
+  console.log("Refunds Data:", refunds);
 
   return (
     <Card className="relative overflow-hidden border-0 shadow bg-gradient-to-br from-red-50 via-rose-50 to-pink-100 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 hover:shadow transition-all duration-300 group">
@@ -108,36 +82,41 @@ const RefundsTable = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {shiftData.refunds.slice(-3).map((refund) => (
+                {refunds.slice(-3).map((refund: any) => (
                   <TableRow
                     key={refund.id}
                     className="border-red-200/30 dark:border-red-700/30 hover:bg-red-100/50 dark:hover:bg-red-800/50 transition-colors duration-200"
                   >
                     <TableCell className="font-medium text-slate-800 dark:text-slate-200 text-sm">
-                      {refund.orderNumber}
+                      {refund.orderNumber ?? refund.orderId.slice(0, 8) ?? "-"}
                     </TableCell>
                     <TableCell className="text-slate-600 dark:text-slate-400 text-sm">
                       <div className="flex items-center gap-2">
                         <ClockIcon className="size-3 text-slate-500" />
                         <span className="text-xs">
-                          {refund.refundedAt.split(" ").slice(1).join(" ")}
+                          {formatDate(refund?.createdAt) ?? "-"}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
+                    <TableCell
+                      className="text-xs font-semibold px-2 py-1 rounded-full truncate max-w-24"
+                      style={{
+                        background: getReasonBadge(refund.reason).split(" ")[0],
+                        color: getReasonBadge(refund.reason).split(" ")[1],
+                      }}
+                      title={refund.reason ?? "-"}
+                    >
+                      <span
+                        className={`inline-flex items-center gap-1 ${getReasonBadge(
+                          refund.reason
+                        )}`}
+                        title={refund.reason ?? "-"}
+                      >
                         {getReasonIcon(refund.reason)}
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded-full truncate max-w-24 ${getReasonBadge(
-                            refund.reason
-                          )}`}
-                          title={refund.reason}
-                        >
-                          {refund.reason.length > 15
-                            ? refund.reason.substring(0, 15) + "..."
-                            : refund.reason}
-                        </span>
-                      </div>
+                        {refund.reason && refund.reason.length > 15
+                          ? refund.reason.substring(0, 15) + "..."
+                          : refund.reason ?? "-"}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right font-bold text-red-600 dark:text-red-400 text-sm">
                       -{formatPrice(refund.amount)}
@@ -156,14 +135,14 @@ const RefundsTable = () => {
                   <RefreshCcwIcon className="size-3 text-white" />
                 </div>
                 <span className="text-sm font-semibold text-red-700 dark:text-red-300">
-                  Total Refunds: {shiftData.refunds.length}
+                  Total Refunds: {refunds.length}
                 </span>
               </div>
               <span className="text-sm font-bold text-red-700 dark:text-red-300">
                 -
                 {formatPrice(
-                  shiftData.refunds.reduce(
-                    (sum, refund) => sum + refund.amount,
+                  refunds.reduce(
+                    (sum: number, refund: any) => sum + refund.amount,
                     0
                   )
                 )}

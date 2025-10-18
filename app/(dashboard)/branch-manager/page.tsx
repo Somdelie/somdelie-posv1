@@ -14,7 +14,7 @@ import { getCurrentUser } from "@/lib/actions/auth";
 import { getBranchDetails } from "@/lib/actions/branches";
 import { getBranchEmployees, Employee } from "@/lib/actions/employees";
 import { notFound } from "next/navigation";
-import { BranchAnalytics } from "@/components/analytics/BranchAnalytics";
+// import { BranchAnalytics } from "@/components/analytics/BranchAnalytics";
 
 function formatTime(t?: string | null) {
   if (!t) return "—";
@@ -221,10 +221,13 @@ export default async function BranchManagerDashboard() {
       </Card>
 
       {/* Analytics Section */}
-      <div className="mt-6">
-        <h2 className="text-2xl font-bold mb-4">Branch Analytics</h2>
-        <BranchAnalytics branchId={branchId} />
-      </div>
+      <Card className="mt-6">
+        <CardContent className="py-10">
+          <p className="text-center text-muted-foreground">
+            Analytics modules are temporarily disabled.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

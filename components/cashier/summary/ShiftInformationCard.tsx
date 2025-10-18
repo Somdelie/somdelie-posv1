@@ -35,13 +35,17 @@ import { clearJWT } from "@/lib/auth/jwt-utils";
 
 interface ShiftInformationCardProps {
   onShiftStarted?: () => void;
+  shift?: ShiftReport | null;
 }
 
 const ShiftInformationCard = ({
   onShiftStarted,
+  shift,
 }: ShiftInformationCardProps) => {
+  const [currentShift, setCurrentShift] = useState<ShiftReport | null>(
+    shift ?? null
+  );
   const router = useRouter();
-  const [currentShift, setCurrentShift] = useState<ShiftReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showEndShiftDialog, setShowEndShiftDialog] = useState(false);

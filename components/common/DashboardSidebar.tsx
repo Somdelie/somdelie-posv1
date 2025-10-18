@@ -87,11 +87,6 @@ const roleMenus = {
       icon: History,
     },
     { label: "Refunds", href: "/store/cashier/refunds", icon: RefreshCcw },
-    {
-      label: "My Performance",
-      href: "/store/cashier/performance",
-      icon: TrendingUp,
-    },
     { label: "Profile", href: "/store/cashier/profile", icon: User },
   ],
   ROLE_BRANCH_CASHIER: [
@@ -108,11 +103,6 @@ const roleMenus = {
       icon: History,
     },
     { label: "Refunds", href: "/store/cashier/refunds", icon: RefreshCcw },
-    {
-      label: "My Performance",
-      href: "/store/cashier/performance",
-      icon: TrendingUp,
-    },
     { label: "Profile", href: "/store/cashier/profile", icon: User },
   ],
   ROLE_STORE_ADMIN: [
